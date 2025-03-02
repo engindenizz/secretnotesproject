@@ -4,6 +4,7 @@ import base64, hashlib
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.fernet import Fernet
+from tkinter import messagebox
 
 
 def generate_fernet_key(user_key: bytes) -> bytes:
@@ -35,7 +36,7 @@ def try_encrypt():
     message = app.enter_note.get("1.0", "end").strip()
 
     if not user_key or not message or not title:
-        print("Hata: Başlık, Anahtar ve Mesaj girilmelidir!")
+        messagebox.showerror("Error", "Please fill all fields!")
         return
 
     encrypted = encrypted_message(user_key, message)
@@ -48,7 +49,7 @@ def try_encrypt():
         file.write(f"Şifrelenmiş Mesaj: {encrypted_text}\n")
         file.write("=" * 40 + "\n")
 
-    print("Mesaj başarıyla kaydedildi!")
+    messagebox.showinfo("Congrats", "Saved Successfully!")
 
     app.title_enter.delete(0, "end")
     app.enter_note.delete("1.0", "end")
@@ -60,14 +61,14 @@ def try_decrypt():
     title = app.title_enter.get().strip()
 
     if not user_key or not title:
-        print("Hata: Başlık ve Anahtar girilmelidir!")
+        messagebox.showerror("Error", "Please fill all fields!")
         return
 
     try:
         with open("secret_notes.txt", "r", encoding="utf-8") as file:
             lines = file.readlines()
     except FileNotFoundError:
-        print("Hata: Kayıtlı şifreli not bulunamadı!")
+        messagebox.showerror("Error", "Title doesnt found! Please create a note first! 1. create a note first! 2. save it. 3. try again! 4. if you're sure, check your file path'")
         return
 
     found_title = False
@@ -80,16 +81,16 @@ def try_decrypt():
             break
 
     if not found_title or encrypted_data is None:
-        print("Hata: Girilen başlığa sahip şifreli mesaj bulunamadı!")
+        messagebox.showerror("Error", "No message found for this title!")
         return
 
     try:
         decrypted_message = decrypt_message(user_key, encrypted_data.encode())
         app.enter_note.delete("1.0", "end")
         app.enter_note.insert("1.0", decrypted_message)
-        print("Mesaj başarıyla çözüldü!")
+        messagebox.showinfo("Congrats", "Decrypted Successfully!")
     except Exception as e:
-        print("Hata: Şifre çözme başarısız! Yanlış anahtar olabilir.", e)
+        messagebox.showerror("Error", "Fail for encrypted message. ")
 
 
 app = ui.Window()
